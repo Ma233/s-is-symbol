@@ -1,0 +1,43 @@
+name: Check and test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check-and-test:
+    name: Check and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Setup Rust toolchain
+        run: |
+          rustup install nightly
+          rustup component add rustfmt --toolchain nightly
+          rustup show
+
+      - uses: Swatinem/rust-cache@v2.9.1
+        with:
+          shared-key: check-and-test-ubuntu-latest-v1
+
+      - name: Setup Python
+        uses: actions/setup-python@v7.0.0
+
+      - name: Run pre-commit checks
+        uses: pre-commit/action@v3.0.1
+
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Execute Rust tests
+        run: cargo nextest run --workspace --all-features --locked

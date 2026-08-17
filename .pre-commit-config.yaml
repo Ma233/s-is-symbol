@@ -1,0 +1,92 @@
+fail_fast: false
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.23.2
+    hooks:
+      - id: markdownlint-cli2
+
+  - repo: https://github.com/bnjbvr/cargo-machete
+    rev: v0.9.2
+    hooks:
+      - id: cargo-machete
+
+  - repo: local
+    hooks:
+      - id: taplo
+        name: taplo format
+        description: Check TOML formatting.
+        entry: taplo
+        language: rust
+        additional_dependencies:
+          - cli:taplo-cli:0.10.0
+        args: [format, --check]
+        files: \.toml$
+        pass_filenames: false
+
+      - id: cargo-fmt
+        name: cargo fmt
+        description: Check Rust formatting.
+        entry: cargo
+        language: rust
+        args: ["+nightly", fmt, --, --check]
+        files: \.rs$
+        pass_filenames: false
+
+      - id: cargo-deny
+        name: cargo deny
+        description: Check dependency advisories, licenses, bans, and sources.
+        entry: cargo-deny
+        language: rust
+        additional_dependencies:
+          - cli:cargo-deny:0.20.2
+        args: [check]
+        files: .*
+        pass_filenames: false
+
+      - id: typos
+        name: typos
+        description: Check spelling.
+        entry: typos
+        language: rust
+        additional_dependencies:
+          - cli:typos-cli:1.48.0
+        files: .*
+        pass_filenames: false
+
+      - id: cargo-check
+        name: cargo check
+        description: Check the package for compilation errors.
+        entry: cargo
+        language: rust
+        args: [check, --workspace, --all-targets, --all-features, --locked]
+        files: (^Cargo\.(toml|lock)$|\.rs$)
+        pass_filenames: false
+
+      - id: cargo-clippy
+        name: cargo clippy
+        description: Lint all Rust targets.
+        entry: cargo
+        language: rust
+        args:
+          - clippy
+          - --workspace
+          - --all-targets
+          - --all-features
+          - --locked
+          - --
+          - --deny
+          - warnings
+        files: (^Cargo\.(toml|lock)$|\.rs$)
+        pass_filenames: false

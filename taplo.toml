@@ -1,0 +1,19 @@
+exclude = ["target/**"]
+
+[formatting]
+align_entries = false
+array_auto_collapse = false
+array_auto_expand = true
+array_trailing_comma = true
+compact_arrays = true
+compact_inline_tables = false
+column_width = 500
+crlf = false
+indent_string = "    "
+indent_tables = false
+reorder_keys = false
+trailing_newline = true
+
+[[rule]]
+keys = ["dependencies", "dev-dependencies", "build-dependencies", "workspace.dependencies"]
+formatting = { reorder_keys = true }
