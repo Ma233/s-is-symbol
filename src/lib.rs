@@ -18,7 +18,7 @@ use crate::search::OnomaSearch;
 #[command(name = "s", version, about)]
 pub struct Cli {
     /// Function, class, struct, or other declaration name to find.
-    pub query: String,
+    pub query: Option<String>,
 
     /// Workspace to search.
     #[arg(default_value = ".", value_name = "PATH")]
@@ -32,6 +32,10 @@ pub struct Cli {
         value_name = "COMMAND"
     )]
     pub nvim: PathBuf,
+
+    /// Immediately remove indexes whose workspaces no longer exist.
+    #[arg(long)]
+    pub gc: bool,
 }
 
 /// Executes an `s` invocation.
@@ -41,7 +45,16 @@ pub struct Cli {
 /// Returns an error when the workspace cannot be resolved or indexed, or when
 /// Neovim cannot be started successfully.
 pub async fn run(cli: Cli) -> Result<()> {
-    let query = cli.query.trim();
+    if cli.gc {
+        if cli.query.is_some() {
+            bail!("--gc cannot be combined with a query");
+        }
+        let removed = search::force_gc()?;
+        println!("Removed {removed} stale workspace index(es).");
+        return Ok(());
+    }
+
+    let query = cli.query.as_deref().unwrap_or_default().trim();
     if query.is_empty() {
         bail!("query must not be empty");
     }

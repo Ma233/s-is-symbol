@@ -1,6 +1,6 @@
 [package]
 name = "s-is-symbol"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Jump to code declarations in Neovim"
 homepage = "https://github.com/ma233/s-is-symbol"
@@ -19,12 +19,18 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1.0.99"
 clap = { version = "4.5.46", features = ["derive", "env"] }
+fs2 = "0.4.3"
+hex = "0.4.3"
 onoma = "0.0.23"
+serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.143"
+sha2 = "0.11.0"
+sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio", "sqlite"] }
 tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1.17"
 
 [dev-dependencies]
+filetime = "0.2.26"
 tempfile = "3.21.0"
 
 [profile.release]

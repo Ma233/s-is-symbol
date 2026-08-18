@@ -59,11 +59,22 @@ jobs:
           zip -j "s-${{ env.VERSION }}-${{ matrix.target }}.zip" \
             "./target/${{ matrix.target }}/release/s"
 
+      - name: Generate checksum
+        run: |
+          archive="s-${{ env.VERSION }}-${{ matrix.target }}.zip"
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum "$archive" >"${archive}.sha256"
+          else
+            shasum -a 256 "$archive" >"${archive}.sha256"
+          fi
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7.0.1
         with:
           name: release-${{ env.VERSION }}-${{ matrix.target }}
-          path: "*.zip"
+          path: |
+            *.zip
+            *.sha256
           if-no-files-found: error
           retention-days: 1
 

@@ -4,6 +4,7 @@
 [![Build](https://github.com/ma233/s-is-symbol/actions/workflows/build.yml/badge.svg)](https://github.com/ma233/s-is-symbol/actions/workflows/build.yml)
 
 `s` is for symbol. `s-is-symbol` uses [Onoma](https://github.com/ryanmab/onoma) to find code declarations and open them in Neovim.
+The workspace must be inside a Git working tree; regular checkouts and Git worktrees are supported.
 
 ## Installation
 
@@ -13,10 +14,9 @@ Download and run the installer from the latest public GitHub Release. The instal
 curl -fsSL https://github.com/ma233/s-is-symbol/releases/latest/download/install.sh | sh
 ```
 
-To install a specific release or the rolling prerelease build:
+To install the rolling prerelease build:
 
 ```sh
-curl -fsSL https://github.com/ma233/s-is-symbol/releases/latest/download/install.sh | SYMBOL_VERSION=v0.1.0 sh
 curl -fsSL https://github.com/ma233/s-is-symbol/releases/latest/download/install.sh | SYMBOL_VERSION=prerelease sh
 ```
 
@@ -25,6 +25,9 @@ You can also build and install directly from the source tree:
 ```sh
 cargo install --path .
 ```
+
+Indexes for deleted projects and Git worktrees are cleaned automatically after
+a seven-day grace period. Run `s --gc` to remove them immediately.
 
 ## Usage
 

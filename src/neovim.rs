@@ -1,10 +1,13 @@
 use std::ffi::OsString;
+#[cfg(unix)]
+use std::os::unix::process::CommandExt as _;
 use std::path::PathBuf;
 use std::process::Command;
 use std::process::Stdio;
 
 use anyhow::Context;
 use anyhow::Result;
+#[cfg(not(unix))]
 use anyhow::bail;
 use onoma::models::resolved::ResolvedSymbol;
 
@@ -47,18 +50,30 @@ impl Neovim {
         I: IntoIterator<Item = S>,
         S: AsRef<std::ffi::OsStr>,
     {
-        let status = Command::new(&self.executable)
+        let mut command = Command::new(&self.executable);
+        command
             .current_dir(&self.workspace)
             .args(args)
             .stdin(Stdio::inherit())
             .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
-            .status()
-            .with_context(|| format!("cannot start {}", self.executable.display()))?;
-        if !status.success() {
-            bail!("Neovim exited with {status}");
+            .stderr(Stdio::inherit());
+
+        #[cfg(unix)]
+        {
+            let error = command.exec();
+            Err(error).with_context(|| format!("cannot start {}", self.executable.display()))
         }
-        Ok(())
+
+        #[cfg(not(unix))]
+        {
+            let status = command
+                .status()
+                .with_context(|| format!("cannot start {}", self.executable.display()))?;
+            if !status.success() {
+                bail!("Neovim exited with {status}");
+            }
+            Ok(())
+        }
     }
 }
 

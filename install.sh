@@ -58,6 +58,21 @@ esac
 need curl
 need unzip
 
+if command -v sha256sum >/dev/null 2>&1; then
+  checksum_tool="sha256sum"
+elif command -v shasum >/dev/null 2>&1; then
+  checksum_tool="shasum"
+else
+  fail "missing required command: sha256sum or shasum"
+fi
+
+calculate_checksum() {
+  case "$checksum_tool" in
+    sha256sum) sha256sum "$1" ;;
+    shasum) shasum -a 256 "$1" ;;
+  esac
+}
+
 case "$(uname -s)" in
   Darwin)
     case "$(uname -m)" in
@@ -91,6 +106,7 @@ fi
 asset_name="${BINARY_NAME}-${VERSION}-${target}.zip"
 temporary="$(mktemp -d)"
 archive="${temporary}/${asset_name}"
+checksum="${archive}.sha256"
 staged=""
 
 cleanup() {
@@ -106,8 +122,22 @@ curl --fail --silent --show-error --location \
   --output "$archive" \
   "https://github.com/${REPO}/releases/download/${VERSION}/${asset_name}" \
   || fail "failed to download ${asset_name}"
+curl --fail --silent --show-error --location \
+  --output "$checksum" \
+  "https://github.com/${REPO}/releases/download/${VERSION}/${asset_name}.sha256" \
+  || fail "failed to download ${asset_name}.sha256"
 
 [ -f "$archive" ] || fail "release asset was not downloaded: ${asset_name}"
+[ -f "$checksum" ] || fail "release checksum was not downloaded: ${asset_name}.sha256"
+read -r expected_checksum _ <"$checksum" \
+  || fail "release checksum is empty: ${asset_name}.sha256"
+[ -n "$expected_checksum" ] \
+  || fail "release checksum is empty: ${asset_name}.sha256"
+actual_checksum="$(calculate_checksum "$archive")"
+actual_checksum="${actual_checksum%%[[:space:]]*}"
+[ "$actual_checksum" = "$expected_checksum" ] \
+  || fail "checksum mismatch for ${asset_name}"
+
 if ! unzip -p "$archive" "$BINARY_NAME" >"${temporary}/${BINARY_NAME}"; then
   fail "release asset does not contain ${BINARY_NAME}"
 fi
